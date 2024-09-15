@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  # Service for Book Catalog application
+  book-catalog:
+    # Using the 'book-catalog' image, build context is set to './book_catalog'
+    image: book-catalog
+    build: 
+      context: ./book_catalog  # Directory where the Dockerfile for book-catalog resides
+      dockerfile: Dockerfile   # Name of the Dockerfile to use
+    container_name: book-catalog  # Naming the container for easy reference
+    ports:
+      - "8081:8081"  # Exposing port 8081 on the container to port 8081 on the host
+    environment:
+      - PORT=8081  # Defining the PORT environment variable used by the app
+      - DATABASE_URL=postgresql://db_8_2c_user:lMRKz40Bu8jOoVzImUWjT7uaegY95IFO@dpg-criieq3v2p9s738ijghg-a.oregon-postgres.render.com/db_8_2c  # PostgreSQL connection string
+    restart: "no"  # Do not restart the container automatically in case of failure
+
+  # Service for Inventory Management application
+  inventory-management:
+    # Using the 'inventory-management' image, build context is set to './inventory_management'
+    image: inventory-management
+    build: 
+      context: ./inventory_management  # Directory where the Dockerfile for inventory-management resides
+      dockerfile: Dockerfile  # Name of the Dockerfile to use
+    container_name: inventory-management  # Naming the container for easy reference
+    ports:
+      - "8082:8082"  # Exposing port 8082 on the container to port 8082 on the host
+    environment:
+      - PORT=8082  # Defining the PORT environment variable used by the app
+      - DATABASE_URL=postgresql://db_8_2c_user:lMRKz40Bu8jOoVzImUWjT7uaegY95IFO@dpg-criieq3v2p9s738ijghg-a.oregon-postgres.render.com/db_8_2c  # PostgreSQL connection string
+    restart: "no"  # Do not restart the container automatically in case of failure
+
+  # Optional PostgreSQL database service (if you prefer to have a local DB instead of Render)
+  # This can be used for local development instead of the external database
+  database:
+    image: postgres:latest  # Using the latest version of PostgreSQL
+    container_name: postgres-db  # Naming the container for easy reference
+    ports:
+      - "5432:5432"  # Exposing PostgreSQL port 5432 on the host
+    environment:
+      - POSTGRES_USER=db_8_2c_user  # Username for PostgreSQL
+      - POSTGRES_PASSWORD=lMRKz40Bu8jOoVzImUWjT7uaegY95IFO  # Password for PostgreSQL
+      - POSTGRES_DB=db_8_2c  # Database name
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Persistent storage for the database
+
+volumes:
+  db_data:  # Volume to store PostgreSQL data persistently

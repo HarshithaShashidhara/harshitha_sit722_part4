@@ -1,0 +1,105 @@
+# Deployment for the Book Catalog service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-catalog  # Name of the deployment
+spec:
+  replicas: 1  # Number of replicas (1 pod for now)
+  selector:
+    matchLabels:
+      app: book-catalog  # Label selector for matching the pods
+  template:
+    metadata:
+      labels:
+        app: book-catalog  # Label applied to the pod template
+    spec:
+      containers:
+      - name: book-catalog  # Name of the container in the pod
+        image: sit722week08task04.azurecr.io/book-catalog_az8:latest  # Container image to pull from Azure Container Registry
+        imagePullPolicy: Always  # Ensures the latest image is always pulled when the pod starts
+        env:
+        - name: PORT
+          value: "8081"  # Setting the environment variable for the application's port
+        - name: DATABASE_URL
+          value: "postgresql://db_8_2c_user:lMRKz40Bu8jOoVzImUWjT7uaegY95IFO@dpg-criieq3v2p9s738ijghg-a.oregon-postgres.render.com/db_8_2c"  # PostgreSQL connection string for database access
+        ports:
+        - containerPort: 8081  # Container exposes port 8081
+
+---
+# Service for the Book Catalog application
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-catalog  # Name of the service
+spec:
+  selector:
+    app: book-catalog  # Selector matches pods with the 'app: book-catalog' label
+  type: LoadBalancer  # Exposes the service via an external IP, useful for cloud environments
+  ports:
+    - protocol: TCP
+      port: 8088  # External port for the service (accessible outside the cluster)
+      targetPort: 8081  # Target port inside the container (where the app is running)
+
+---
+# Deployment for the Inventory Management service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-management  # Name of the deployment
+spec:
+  replicas: 1  # Number of replicas (1 pod for now)
+  selector:
+    matchLabels:
+      app: inventory-management  # Label selector for matching the pods
+  template:
+    metadata:
+      labels:
+        app: inventory-management  # Label applied to the pod template
+    spec:
+      containers:
+      - name: inventory-management  # Name of the container in the pod
+        image: sit722week08task04.azurecr.io/inventory_management_az8:latest  # Container image to pull from Azure Container Registry
+        imagePullPolicy: Always  # Ensures the latest image is always pulled when the pod starts
+        env:
+        - name: PORT
+          value: "8082"  # Setting the environment variable for the application's port
+        - name: DATABASE_URL
+          value: "postgresql://db_8_2c_user:lMRKz40Bu8jOoVzImUWjT7uaegY95IFO@dpg-criieq3v2p9s738ijghg-a.oregon-postgres.render.com/db_8_2c"  # PostgreSQL connection string for database access
+        ports:
+        - containerPort: 8082  # Container exposes port 8082
+
+---
+# Service for the Inventory Management application
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-management  # Name of the service
+spec:
+  selector:
+    app: inventory-management  # Selector matches pods with the 'app: inventory-management' label
+  type: LoadBalancer  # Exposes the service via an external IP, useful for cloud environments
+  ports:
+    - protocol: TCP
+      port: 8089  # External port for the service (accessible outside the cluster)
+      targetPort: 8082  # Target port inside the container (where the app is running)
+
+# Optional ConfigMap to manage environment variables separately
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config  # ConfigMap name
+data:
+  POSTGRES_USER: db_8_2c_user  # Database user
+  POSTGRES_PASSWORD: lMRKz40Bu8jOoVzImUWjT7uaegY95IFO  # Database password
+  DATABASE_URL: postgresql://db_8_2c_user:lMRKz40Bu8jOoVzImUWjT7uaegY95IFO@dpg-criieq3v2p9s738ijghg-a.oregon-postgres.render.com/db_8_2c  # PostgreSQL connection string
+
+# Service account for authentication (Optional, for cloud-specific setups like GCP or AWS)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: book-catalog-sa  # Name of the service account
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inventory-management-sa  # Name of the service account
